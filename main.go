@@ -108,6 +108,7 @@ func (e *Executor) Run() {
 		worker := NewWorker(e.WorkerPool)
 		worker.Start()
 	}
+	go e.dispatch()
 }
 
 // 接收请求，把任务筛入JobQueue。
