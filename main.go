@@ -25,7 +25,8 @@ func init() {
 	JobQueue = make(chan Job, MaxQueue)
 }
 
-/**
+/*
+*
 worker
 */
 type Worker struct {
@@ -45,9 +46,10 @@ func NewWorker(workerPool chan chan Job) *Worker {
 func (worker *Worker) Start() {
 
 	go func() {
-		//worker 创建新的worker需要交给执行器去管理
-		worker.WorkerPool <- worker.JobChannel
 		for {
+			//worker 创建新的worker需要交给执行器去管理
+			worker.WorkerPool <- worker.JobChannel
+
 			select {
 			case job := <-worker.JobChannel:
 				//   真正业务的地方
@@ -61,21 +63,22 @@ func (worker *Worker) Start() {
 	}()
 }
 
-//停止worker
+// 停止worker
 func (worker *Worker) stop() {
 	go func() {
 		worker.quit <- true
 	}()
 }
 
-/**
+/*
+*
 执行器
 */
 type Executor struct {
 	WorkerPool chan chan Job
 }
 
-//构造
+// 构造
 func NewExecutor(maxWorkers int) *Executor {
 	pool := make(chan chan Job, maxWorkers)
 	return &Executor{WorkerPool: pool}
@@ -91,17 +94,16 @@ func (e *Executor) dispatch() {
 			go func(job Job) {
 				select {
 				//如果有空闲的worker
-				case worker := <-e.WorkerPool:
+				case workerChan := <-e.WorkerPool:
 					// 分发任务到 worker job channel 中
-					worker <- job
-
+					workerChan <- job
 				}
 			}(job)
 		}
 	}
 }
 
-//启动执行器
+// 启动执行器
 func (e *Executor) Run() {
 	//启动所有的worker
 	for i := 0; i < MaxWorker; i++ {
