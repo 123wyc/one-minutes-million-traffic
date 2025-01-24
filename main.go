@@ -14,7 +14,7 @@ const (
 	MaxQueue  = 200 // 随便设置值
 )
 
-// 一个可以发送工作请求的缓冲 channel
+// JobQueue 一个可以发送工作请求的缓冲 channel
 var JobQueue chan Job
 
 type Payload struct{}
@@ -27,10 +27,7 @@ func init() {
 	JobQueue = make(chan Job, MaxQueue)
 }
 
-/*
-*
-worker
-*/
+// Worker worker
 type Worker struct {
 	WorkerPool chan chan Job
 	JobChannel chan Job
@@ -49,7 +46,9 @@ func (worker *Worker) Start() {
 
 	go func() {
 		for {
-			//worker 创建新的worker需要交给执行器去管理
+			/**
+			  多个work这里会阻塞,实现抢占式竞争
+			*/
 			worker.WorkerPool <- worker.JobChannel
 
 			select {
@@ -72,15 +71,12 @@ func (worker *Worker) stop() {
 	}()
 }
 
-/*
-*
-执行器
-*/
+// Executor /*
 type Executor struct {
 	WorkerPool chan chan Job
 }
 
-// 构造
+// NewExecutor 构造
 func NewExecutor(maxWorkers int) *Executor {
 	pool := make(chan chan Job, maxWorkers)
 	return &Executor{WorkerPool: pool}
@@ -105,7 +101,7 @@ func (e *Executor) dispatch() {
 	}
 }
 
-// 启动执行器
+// Run 启动执行器
 func (e *Executor) Run() {
 	//启动所有的worker
 	for i := 0; i < MaxWorker; i++ {
