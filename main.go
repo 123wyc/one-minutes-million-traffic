@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+//https://github.com/itfanr/articles-about-golang/blob/master/2016-10/1.handling-1-million-requests-per-minute-with-golang.md
+
 const (
 	MaxWorker = 100 //随便设置值
 	MaxQueue  = 200 // 随便设置值
